@@ -313,11 +313,6 @@ public class Disruptor<T>
      */
     public EventHandlerGroup<T> after(final EventProcessor... processors)
     {
-        for (final EventProcessor processor : processors)
-        {
-            consumerRepository.add(processor);
-        }
-
         return new EventHandlerGroup<>(this, consumerRepository, Util.getSequencesFor(processors));
     }
 
@@ -535,14 +530,8 @@ public class Disruptor<T>
     private boolean hasBacklog()
     {
         final long cursor = ringBuffer.getCursor();
-        for (final Sequence consumer : consumerRepository.getLastSequenceInChain(false))
-        {
-            if (cursor > consumer.get())
-            {
-                return true;
-            }
-        }
-        return false;
+
+        return consumerRepository.hasBacklog(cursor, false);
     }
 
     EventHandlerGroup<T> createEventProcessors(
